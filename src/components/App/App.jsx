@@ -1,128 +1,60 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { CSSTransition } from 'react-transition-group';
-import ContactForm from '../ContactForm/ContactForm';
-import ContactList from '../ContactList/ContactList';
-import Filter from '../Filter/Filter';
-import Notification from '../Notification/Notification';
-import slideHeader from '../../transitions/slideHeader.module.css';
-import popFilter from '../../transitions/popFilter.module.css';
-import slideNotification from '../../transitions/slideNotification.module.css';
-import styles from './App.module.css';
+import Logo from '../Logo/Logo';
+import ContactFormContainer from '../ContactForm/ContactFormContainer';
+import ContactListContainer from '../ContactList/ContactListContainer';
+import FilterContainer from '../Filter/FilterContainer';
+import PropTypes from 'prop-types';
+import slideLogo from '../../transitions/slideLogo.module.css';
 
 export default class App extends Component {
+  static propTypes = {
+    contacts: PropTypes.array.isRequired,
+    saveContact: PropTypes.func.isRequired,
+  };
+
   state = {
     mounted: false,
-    contactExist: false,
   };
 
-  // componentDidMount() {
-  //   const persistedContacts = localStorage.getItem('contacts');
+  componentDidMount() {
+    const { saveContact } = this.props;
+    const persistedContacts = JSON.parse(localStorage.getItem('contacts'));
 
-  //   if (persistedContacts) {
-  //     const contacts = JSON.parse(persistedContacts);
+    if (persistedContacts) {
+      persistedContacts.map(contact => saveContact(contact));
+    }
 
-  //     this.setState({ contacts });
-  //   }
-  // }
+    this.setState({ mounted: true });
+  }
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   if (prevState.contacts !== this.state.contacts) {
-  //     localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-  //   }
-  // }
+  componentDidUpdate(prevProps) {
+    const { contacts } = this.props;
 
-  handleFilterChange = event => {
-    const { value } = event.target;
-    const { updateFilterAction } = this.props;
-
-    updateFilterAction(value);
-  };
-
-  // addContact = contact => {
-  //   const { name } = contact;
-  //   const { contacts } = this.state;
-
-  //   const matchedName = contacts.some(contacts => contacts.name === name);
-
-  //   if (matchedName) {
-  //     this.setState({ contactExist: true }, () =>
-  //       setTimeout(() => this.setState({ contactExist: false }), 3000),
-  //     );
-  //   } else {
-  //     const contactToAdd = {
-  //       id: shortid.generate(),
-  //       ...contact,
-  //     };
-
-  //     this.setState(state => ({
-  //       contacts: [...state.contacts, contactToAdd],
-  //     }));
-  //   }
-  // };
-
-  // deleteContact = id => {
-  //   this.setState(state => ({
-  //     contacts: state.contacts.filter(contact => contact.id !== id),
-  //   }));
-  // };
+    if (prevProps.contacts !== contacts) {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    }
+  }
 
   render() {
-    const { mounted, contactExist } = this.state;
-    const {
-      contacts,
-      deleteContactAction,
-      saveContactAction,
-      filter,
-    } = this.props;
-    console.log(contacts);
-    // const filteredContacts = contacts.filter(item =>
-    //   item.name.toLowerCase().includes(filter.toLowerCase()),
-    // );
+    const { mounted } = this.state;
+    const { contacts } = this.props;
 
     return (
       <div>
-        {/* <CSSTransition
-          in={contactExist}
-          timeout={250}
-          classNames={slideNotification}
-          unmountOnExit
-        >
-          <Notification />
-        </CSSTransition> */}
         <CSSTransition
           in={mounted}
           timeout={500}
-          classNames={slideHeader}
+          classNames={slideLogo}
           unmountOnExit
         >
-          <h1 className={styles.H1}>Phonebook</h1>
-        </CSSTransition>
-        <ContactForm onSaveContact={saveContactAction} />
-        <CSSTransition
-          in={contacts.length >= 2}
-          timeout={250}
-          classNames={popFilter}
-          unmountOnExit
-        >
-          <Filter onChangeFilter={this.handleFilterChange} filter={filter} />
+          <Logo />
         </CSSTransition>
 
-        {!!contacts.length && (
-          <ContactList items={contacts} onDelete={deleteContactAction} />
-        )}
+        <ContactFormContainer />
+        {contacts.length >= 2 && <FilterContainer />}
+        {!!contacts.length && <ContactListContainer />}
       </div>
     );
   }
 }
-
-App.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    }),
-  ),
-  filter: PropTypes.string,
-};

@@ -1,24 +1,42 @@
-import React from 'react';
+import React, { Component } from 'react';
+import { CSSTransition } from 'react-transition-group';
 import styles from '../Filter/Filter.module.css';
+import popFilter from '../../transitions/popFilter.module.css';
 import PropTypes from 'prop-types';
 
-const Filter = ({ onChangeFilter, filter }) => (
-  <form className={styles.Form}>
-    <label className={styles.Label}>Find contacts by name</label>
-    <input
-      type="text"
-      name="filter"
-      value={filter}
-      onChange={onChangeFilter}
-      className={styles.Input}
-    />
-  </form>
-);
+export default class Filter extends Component {
+  static propTypes = {
+    updateFilter: PropTypes.func.isRequired,
+    contacts: PropTypes.array.isRequired,
+  };
 
-Filter.propTypes = {
-  onChangeFilter: PropTypes.func.isRequired,
-  filter: PropTypes.string.isRequired,
-  contacts: PropTypes.arrayOf(PropTypes.object),
-};
+  handleInputChange = event => {
+    const { value } = event.target;
+    const { updateFilter } = this.props;
 
-export default Filter;
+    updateFilter(value);
+  };
+
+  render() {
+    const { contacts } = this.props;
+
+    return (
+      <CSSTransition
+        in={contacts.length >= 2}
+        timeout={250}
+        classNames={popFilter}
+        unmountOnExit
+      >
+        <form className={styles.Form}>
+          <label className={styles.Label}>Find contacts by name</label>
+          <input
+            type="text"
+            name="filter"
+            onChange={this.handleInputChange}
+            className={styles.Input}
+          />
+        </form>
+      </CSSTransition>
+    );
+  }
+}
